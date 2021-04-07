@@ -1,0 +1,5 @@
+{
+	"PORT": 3000,
+	"CSE_URL": "localhost",
+	"CSR_PORT": 8080
+}

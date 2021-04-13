@@ -13,13 +13,13 @@ The app also fetches and parses data from the CSE to send it to the ROTehc front
 
 ## Usage
 
-#### Run
+### Run
 
 ```zsh
 deno run --allow-net --allow-read src/main.ts
 ```
 
-#### Test
+### Test
 
 Run all tests:
 

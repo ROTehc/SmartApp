@@ -67,6 +67,7 @@ deno test tests/NAME.test.ts
  ┃ ┣ 📜aqi.test.ts
  ┃ ┣ 📜closest.test.ts
  ┃ ┗ 📜distance.test.ts
+ ┣ 📜.gitignore
  ┣ 📜LICENSE
  ┗ 📜README.md
 ```

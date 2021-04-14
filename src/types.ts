@@ -14,6 +14,10 @@ interface Node {
   coordinates: Coordinates;
 }
 
+interface SensorNode extends Node {
+  readings: Readings | undefined;
+}
+
 interface ActuatorNode extends Node {
   closest: string | undefined;
 }

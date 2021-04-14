@@ -1,4 +1,9 @@
-import { ActuatorNode, Coordinates, Node, NodeDistance } from "./types.ts";
+import {
+  ActuatorNode,
+  Coordinates,
+  NodeDistance,
+  SensorNode,
+} from "./types.ts";
 import { logger } from "./log.ts";
 
 export function distanceBetween(c1: Coordinates, c2: Coordinates) {
@@ -17,10 +22,10 @@ export function distanceBetween(c1: Coordinates, c2: Coordinates) {
 
 export function findClosest(
   actuator: ActuatorNode,
-  sensorNodes: Map<string, Node>,
+  sensorNodes: Map<string, SensorNode>,
 ) {
   const distances: NodeDistance[] = [];
-  sensorNodes.forEach((sensor: Node, rn: string) => {
+  sensorNodes.forEach((sensor: SensorNode, rn: string) => {
     const d = distanceBetween(actuator.coordinates, sensor.coordinates);
     distances.push({
       rn: rn,
@@ -39,7 +44,7 @@ export function findClosest(
 
 export function discoverClosest(
   actuatorNodes: Map<string, ActuatorNode>,
-  sensorNodes: Map<string, Node>,
+  sensorNodes: Map<string, SensorNode>,
 ) {
   actuatorNodes.forEach((actuator, rn) => {
     actuator.closest = findClosest(actuator, sensorNodes);
@@ -50,9 +55,9 @@ export function discoverClosest(
 
 export function onSensorSubscription(
   rn: string,
-  sensor: Node,
+  sensor: SensorNode,
   actuatorNodes: Map<string, ActuatorNode>,
-  sensorNodes: Map<string, Node>,
+  sensorNodes: Map<string, SensorNode>,
 ) {
   logger("SUB", `${rn} has suscribed`);
   sensorNodes.set(rn, sensor);
@@ -63,7 +68,7 @@ export function onActuatorSubscription(
   rn: string,
   actuator: ActuatorNode,
   actuatorNodes: Map<string, ActuatorNode>,
-  sensorNodes: Map<string, Node>,
+  sensorNodes: Map<string, SensorNode>,
 ) {
   logger("SUB", rn, "has suscribed");
   actuator.closest = findClosest(actuator, sensorNodes);
@@ -88,7 +93,7 @@ export function average(values: number[]) {
 }
 
 export function gasAQI(value: number, min: number, max: number) {
-  return Math.max(Math.min(10, 10 * (value - min) / (max - min)), 1);
+  return 11 - Math.max(10 * Math.min(1, (value - min) / (max - min)), 1);
 }
 
 export function calculateAQI(reading: Readings) {

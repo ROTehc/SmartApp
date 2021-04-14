@@ -12,7 +12,7 @@ import {
   createSubscription,
   registerAE,
 } from "./cse-com.ts";
-import { Node } from "./types.ts";
+import { ActuatorNode, SensorNode } from "./types.ts";
 import {
   calculateAQI,
   getActuatorsCloseToSensor,
@@ -29,8 +29,8 @@ const { SCHEMA, ADDR, PORT } = JSON.parse(
 const AE_URL = `${SCHEMA}://${ADDR}:${PORT}`;
 
 // Maps
-const sensorNodes: Map<string, Node> = new Map();
-const actuatorNodes: Map<string, Node> = new Map();
+const sensorNodes: Map<string, SensorNode> = new Map();
+const actuatorNodes: Map<string, ActuatorNode> = new Map();
 
 // Start App
 const app = opine();
@@ -48,7 +48,16 @@ function verify(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-app.use(verify);
+app.use(["/new*", "/Sensor*", "/Actuator*"], verify);
+
+// Frontend
+app.get("/getData", (req: Request, res: Response) => {
+  const payload: Array<{ gas: string; coordinates: Coordinates }> = [];
+  sensorNodes.forEach((node, rn) => {
+    payload.push({ gas: node.readings, coordinates: node.coordinates });
+  });
+  res.setStatus(200).json(payload);
+});
 
 // Helpers
 const isCnt = (rep: { [key: string]: string }) =>
@@ -80,7 +89,7 @@ app.post("/Sensor*", (req, res) => {
     const cntName = rep["m2m:cnt"].rn; // Get its RN, DATA or LOCATION
     // Create a subscription to the container
     const uri = `/Sensors/${sensor}/${cntName}`;
-    const rn = `"sub${cntName}${sensor}`;
+    const rn = `sub${cntName}${sensor}`;
     const lbl = cntName;
     const endpoint = `${AE_URL}/${sensor}`;
     createSubscription(
@@ -100,6 +109,7 @@ app.post("/Sensor*", (req, res) => {
             lat: con.lat,
             lon: con.lon,
           },
+          readings: undefined,
         },
         actuatorNodes,
         sensorNodes,
@@ -107,6 +117,9 @@ app.post("/Sensor*", (req, res) => {
       logger("LOC", "The location of", sensor, "is", Deno.inspect(con));
     } else { // If its a reading
       // Get the closest actuators
+      const s = sensorNodes.get(sensor);
+      s.readings = con;
+      sensorNodes.set(sensor, s);
       const closeActuators: string[] = getActuatorsCloseToSensor(
         sensor,
         actuatorNodes,
@@ -119,7 +132,7 @@ app.post("/Sensor*", (req, res) => {
           "are",
           closeActuators.join(", "),
         );
-        console.table(con);
+        // console.table(con);
         const AQI = calculateAQI(con).toFixed(1); // Calculate the AQI
         logger("AQI", `Sending AQI ${AQI} from ${sensor} to ${closeActuators}`);
         closeActuators.forEach((a) => {
@@ -157,7 +170,6 @@ app.post("/Actuator*", (req, res) => {
   } else {
     let { con, lbl } = rep["m2m:cin"];
     con = JSON.parse(con);
-    logger("LOC", actuator, "->", con);
     onActuatorSubscription(
       actuator,
       {

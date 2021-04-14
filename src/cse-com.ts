@@ -25,6 +25,7 @@ function headerBuilder(ty: number) {
     "X-M2M-Origin": "SmartApp",
     "X-M2M-RVI": "3",
     "X-M2M-RI": Math.random().toString().substr(2, 16),
+    "accept": "application/json",
     "Content-Type": "application/vnd.onem2m-res+json; ty=" + ty,
   };
 }
@@ -93,7 +94,7 @@ export async function createSubscription(
         "rn": rn,
         "lbl": [label],
         "enc": {
-          "net": [3, 4],
+          "net": [3],
         },
         "nu": [endpoint],
         "nct": 1,
